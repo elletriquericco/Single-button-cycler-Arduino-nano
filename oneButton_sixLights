@@ -1,0 +1,158 @@
+// Button mode board
+/*
+   Single button operated
+   8 individual lights
+    2 are to be on/off indicators
+    6 are for output indicators
+    3 of the 6 make 1 RGB_LED
+
+*/
+
+// GLobal variables
+const int outPuts[6] = {3, 5, 6, 9, 10, 11};
+const int onOff[2] = {7, 8};
+const int buttonPin = 12;
+const int lefRGB[] = {11, 10, 9};
+const int rigRGB[] = {6, 5, 3};
+
+// Altered variables
+int buttonState;
+int lastButtonState = HIGH;
+int counter;
+bool stillLow = false;
+long storedMillis;
+
+
+// FUNCTIONS LIST //
+
+// Lights in multiples of a number(x) are on
+void multiples_of_x_are_on (int x) {
+  for (int i; i < 6; i++) {
+    if (outPuts[i] % x == 0) {
+      digitalWrite(outPuts[i], HIGH);
+    }
+  }
+}
+
+// Button toggle press
+void falling_edge_buttoncount () {
+  buttonState = digitalRead(buttonPin);
+  if (buttonState != lastButtonState) {
+    lastButtonState = buttonState;
+    // Activates Long press parameters
+    stillLow = true;
+    storedMillis = millis();
+    // Falling edge detection
+    if (buttonState == LOW) {
+      counter++;
+    }
+  }
+  // Three econd long press off
+  if (stillLow = true) {
+    if (millis() - storedMillis > 2000 && buttonState == LOW) {
+      digitalWrite(onOff[1], HIGH);
+      digitalWrite(onOff[0], LOW);
+      all_off ();
+      counter = 0;
+    }
+    else {
+      digitalWrite(onOff[1], LOW);
+    }
+  }
+}
+
+// All off
+void all_off () {
+  for (int i; i < 6; i++) {
+    digitalWrite(outPuts[i], LOW);
+  }
+}
+
+// Counter reset after reaching (c) - number of LEDs
+void counter_reset (int c) {
+  if (counter == c) {
+    counter = 0;
+  }
+}
+
+// On light after button press
+void on_indicator () {
+  if (counter > 0) {
+    digitalWrite(onOff[0], HIGH);
+  }
+}
+
+// Switch cases for outputs
+void switch_case_outputs () {
+  switch (counter) {
+    case (2):
+      digitalWrite(lefRGB[0], HIGH);
+      break;
+
+    case 3:
+    all_off();
+      digitalWrite(lefRGB[1], HIGH);
+      break;
+
+    case 4:
+    all_off();
+      digitalWrite(lefRGB[2], HIGH);
+      break;
+
+    case 5:
+    all_off();
+      digitalWrite(rigRGB[0], HIGH);
+      break;
+
+    case 6:
+    all_off();
+      digitalWrite(rigRGB[1], HIGH);
+      break;
+
+    case 7:
+    all_off();
+      digitalWrite(rigRGB[2], HIGH);
+      break;
+
+    default:
+      all_off();
+  }
+}
+
+void setup() {
+
+  // Button as input
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // outPuts init
+  for (int i; i < 6; i++) {
+    pinMode(outPuts[i], OUTPUT);
+  }
+
+  // onOff init
+  for (int i; i < 2; i++) {
+    pinMode(onOff[i], OUTPUT);
+  }
+
+}
+
+void loop() {
+
+  // Testing outPuts 1 all on, else 0
+  multiples_of_x_are_on(0);
+
+  // Button press counter
+  falling_edge_buttoncount ();
+
+  // Counter reset
+  counter_reset (8);
+
+  // On
+  on_indicator ();
+
+  // Switching between outputs
+  switch_case_outputs (); 
+
+}
+
+// END OF CODE //
